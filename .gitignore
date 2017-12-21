@@ -1,0 +1,16 @@
+*.lst
+*.obj
+*.pdf
+*.exe
+*.zip
+*.7z
+*.bak
+*.m51
+*.uvopt
+*.A51
+*.hex
+*.lnp
+*.plg
+*.Administrator
+/Master-Project/Project/Output
+/Slaver-Project/Project/Output
