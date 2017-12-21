@@ -7,7 +7,6 @@
 *.bak
 *.m51
 *.uvopt
-*.A51
 *.hex
 *.lnp
 *.plg
