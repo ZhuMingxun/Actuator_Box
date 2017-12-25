@@ -256,6 +256,8 @@ void Local_Mode()
             
             #ifdef PHASE_SEQ
             PhaseSeq_Update();//相序，缺相检测
+            //UART1_SWToDebug();
+            //printf("\r\n mode=%d\r\n",(int)mode);
             if(mode == MODE_LACK_PHASE) break;
             #endif 
       

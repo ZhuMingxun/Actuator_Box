@@ -144,7 +144,11 @@ void DistantAnalog_Mode()
             
             #ifdef PHASE_SEQ
             PhaseSeq_Update();
-            if(mode == MODE_LACK_PHASE)    break;  
+            if(mode == MODE_LACK_PHASE)
+            {
+                Motor_Stop();
+                break;  
+            }
             #endif 
         }
 		
@@ -152,7 +156,6 @@ void DistantAnalog_Mode()
         {
             timer1_500ms_flag = 0;
             IntegAlarm();
-
         }
 		
         if(timer1_1s_flag == 1)

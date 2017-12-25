@@ -77,6 +77,7 @@ static void UART1Debug_Config()
 
 void UART1_SWToDebug()
 {
+    while(flag_tx_busy);
     UART1Debug_Config();
 }
 

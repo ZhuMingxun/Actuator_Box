@@ -1,7 +1,7 @@
 #ifndef _ACTUATOR_CONFIG_H
 #define _ACTUATOR_CONFIG_H
 
-#define WATCH_DOG
+//#define WATCH_DOG
 #define WATCH_DOG_RSTVAL 0x35
 
 /*
@@ -15,7 +15,7 @@
 *	7-H-380-PK-JX
 */
 
-#define MODEL	7
+#define MODEL	3
 
 #if (MODEL&(1<<2))
 #define PHASE_SEQ //380

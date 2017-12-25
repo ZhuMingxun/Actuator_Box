@@ -7,8 +7,10 @@
 #include "delay.h"
 #include "motor.h"
 #include "com.h"
-static PhaseSeq_Type phaseseq_status;//枚举变量，相序状态
-static CapSeq_TypeDef Cap_Seq;//序列捕获结构体
+#include <stdio.h>
+
+volatile PhaseSeq_Type phaseseq_status;//枚举变量，相序状态
+volatile CapSeq_TypeDef Cap_Seq;//序列捕获结构体
 bit phase_seq = 1;
 u8 phase_update_ok=0;
 
@@ -26,20 +28,18 @@ static void PhsaeSeqIO_Config()
     
 }
 
-static void CapSeq_Init(CapSeq_TypeDef* pCapSeq)
+static void CapSeq_Init()
 {
-    pCapSeq->cap_sequence = 0;
-    pCapSeq->cap_cnt = 0;
-    pCapSeq->capok_flag = 0;
-    EX0 = 1;
-    EX1 = 1;
+    Cap_Seq.cap_sequence = 0;
+    Cap_Seq.cap_cnt = 0;
+    Cap_Seq.capok_flag = 0;
 }
 
 /*************相序检测初始化配置**************/
 void PhaseSeq_Detect_Config()
 {
     PhsaeSeqIO_Config();
-    CapSeq_Init(&Cap_Seq); 
+    CapSeq_Init(); 
     phase_update_ok = 0;
     while(phase_update_ok !=1)
     {
@@ -53,6 +53,8 @@ void PhaseSeq_Detect_Config()
 void PhaseSeq_Update()//主函数执行
 {
     static u8 err_cnt = 0;
+    static u8 pcnt;
+    static u8 rcnt;
     u8 seq;
     
     if(Cap_Seq.capok_flag == 1)
@@ -62,18 +64,30 @@ void PhaseSeq_Update()//主函数执行
         {
             case 0x1E:case 0x87:case 0xE1:case 0x78:
             {
-                if(phaseseq_status != PHASESEQ_POSITIVE)  phaseseq_status = PHASESEQ_POSITIVE;
                 phase_seq = 1;
-                phase_update_ok = 1;
-                if(err_cnt != 0) err_cnt = 0;   
+                pcnt++;
+                if(pcnt>5)
+                {
+                     phaseseq_status = PHASESEQ_POSITIVE;
+                     phase_update_ok = 1;
+                     pcnt=0;
+                }
+                rcnt=0; 
+                err_cnt = 0;               
                 break;
             }
             case 0x2D:case 0xD2:case 0x4B:case 0xB4:
             {
-                if(phaseseq_status != PHASESEQ_REVERSE)  phaseseq_status = PHASESEQ_REVERSE;
                 phase_seq = 0;
-                phase_update_ok = 1;
-                if(err_cnt != 0) err_cnt = 0; 
+                rcnt++;
+                if(rcnt>5)
+                {
+                    phaseseq_status = PHASESEQ_REVERSE;
+                    phase_update_ok = 1;
+                    rcnt=0;
+                }
+                pcnt = 0;
+                err_cnt = 0; 
                 break;
             }
             default:
@@ -86,12 +100,17 @@ void PhaseSeq_Update()//主函数执行
                     mode = MODE_LACK_PHASE; 
                     phase_update_ok = 1;
                 }
+                pcnt=0;
+                rcnt=0;
                 break;
             }
         }
-        
-        
-        CapSeq_Init(&Cap_Seq);
+        //UART1_SWToDebug();
+        //printf("\r\n err_cnt=%d phaseseq_status=%d seq=%d\r\n",(int)err_cnt,(int)phaseseq_status,(int)(Cap_Seq.cap_sequence));
+        //CapSeq_Init();
+        //printf("\r\n after init cap_sequence=%d capflag=%d capcnt=%d\r\n",(int)(Cap_Seq.cap_sequence),(int)(Cap_Seq.capok_flag),(int)(Cap_Seq.cap_cnt));
+            EX0 = 1;
+            EX1 = 1;
     }
 }
 
@@ -100,21 +119,28 @@ void PhaseSeq_Update()//主函数执行
 /****************缺相模式函数*********************/
 void LackPhase_Mode()
 {
-    u8 ep_on = 1;
     Motor_Stop();
     ERR_OUT
+    
     while(mode == MODE_LACK_PHASE)
     {
 		#ifdef WATCH_DOG
 		WDT_CONTR = WATCH_DOG_RSTVAL;
 		#endif
  
+        if(timer1_100ms_flag)
+        {
+            timer1_100ms_flag = 0;
+            TransmitFrameToSlaver();  
+        }
+        
         if(timer1_200ms_flag == 1)
         {
             timer1_200ms_flag = 0;
             PhaseSeq_Update();
-            if(phaseseq_status != PHASESEQ_LACK)    break;
-            TransmitFrameToSlaver();
+            if(phaseseq_status != PHASESEQ_LACK)
+                break;
+  
         }      
     }
     
@@ -124,28 +150,28 @@ void LackPhase_Mode()
 
 /************相序捕获函数*****************/
 /* description:负责填充捕获的序列    */
-void PhaseSeq_Cap_A(CapSeq_TypeDef* pCapSeq,u8 capvalue)//放在外部中断里
+void PhaseSeq_Cap_A(u8 capvalue)//放在外部中断里
 {
-    pCapSeq->cap_sequence <<= 2;
-    pCapSeq->cap_sequence |= (capvalue & 0x03);
-    pCapSeq->cap_cnt++;
-    if(pCapSeq->cap_cnt >= 6)//采集满一个周期的序列，标志置1，关闭中断不再采集
+    Cap_Seq.cap_sequence <<= 2;
+    Cap_Seq.cap_sequence |= (capvalue & 0x03);
+    Cap_Seq.cap_cnt++;
+    if(Cap_Seq.cap_cnt >= 6)//采集满一个周期的序列，标志置1，关闭中断不再采集
     {
-        pCapSeq->cap_cnt = 0;
-        pCapSeq->capok_flag = 1;
+        Cap_Seq.cap_cnt = 0;
+        Cap_Seq.capok_flag = 1;
         EX0 = 0;
         EX1 = 0;
     }   
 }
-void PhaseSeq_Cap_B(CapSeq_TypeDef* pCapSeq,u8 capvalue)//放在外部中断里
+void PhaseSeq_Cap_B(u8 capvalue)//放在外部中断里
 {
-    pCapSeq->cap_sequence <<= 2;
-    pCapSeq->cap_sequence |= (capvalue & 0x03);
-    pCapSeq->cap_cnt++;
-    if(pCapSeq->cap_cnt >= 6)//采集满一个周期的序列，标志置1，关闭中断不再采集
+    Cap_Seq.cap_sequence <<= 2;
+    Cap_Seq.cap_sequence |= (capvalue & 0x03);
+    Cap_Seq.cap_cnt++;
+    if(Cap_Seq.cap_cnt >= 6)//采集满一个周期的序列，标志置1，关闭中断不再采集
     {
-        pCapSeq->cap_cnt = 0;
-        pCapSeq->capok_flag = 1;
+        Cap_Seq.cap_cnt = 0;
+        Cap_Seq.capok_flag = 1;
         EX0 = 0;
         EX1 = 0;
     }   
@@ -156,7 +182,7 @@ void Ext_INT0 (void) interrupt INT0_VECTOR
     u8  value_cap;
     EA = 0;
     value_cap = (P3 & 0x0c)>>2;
-    PhaseSeq_Cap_A(&Cap_Seq,value_cap);
+    PhaseSeq_Cap_A(value_cap);
     EA = 1;
 
 }
@@ -167,7 +193,7 @@ void Ext_INT1 (void) interrupt INT1_VECTOR
     u8  value_cap;
     EA = 0;
     value_cap = (P3 & 0x0c)>>2;
-    PhaseSeq_Cap_B(&Cap_Seq,value_cap);
+    PhaseSeq_Cap_B(value_cap);
     EA = 1;
     
 }
