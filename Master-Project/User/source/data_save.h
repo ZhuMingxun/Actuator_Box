@@ -44,6 +44,7 @@ u8 IapRead_InitFlag();
 float IapRead_OffsetOpen();
 float IapRead_OffsetClose();
 signed char IapRead_CloseDir();
+
 u16 IapRead_CalLow();
 u16 IapRead_CalHigh();
 void IapWrite_SetInputLow(u16 val);

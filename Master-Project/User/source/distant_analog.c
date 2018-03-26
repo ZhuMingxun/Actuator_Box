@@ -369,7 +369,7 @@ void RemoteAnalog_Control_Adaptive()
     static float stop_pos;
     static u8 run_enable_cnt;
     static int vibrate_cnt;
-//    static u8 vibrate_input_cnt;
+    //static u8 vibrate_input_cnt;
     static float input_pos_pre;
     float pos_real;
     float poserr;

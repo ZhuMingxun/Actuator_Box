@@ -76,6 +76,7 @@ void SystemParam_Init()
 		pSystemParam->sen = SEN0_5MA;
 		pSystemParam->res_input = 200.0;
 		pSystemParam->res_output = 200.0;
+
 		
 		pSystemParam->cal_low = 400;
 		pSystemParam->cal_high = 2000;
