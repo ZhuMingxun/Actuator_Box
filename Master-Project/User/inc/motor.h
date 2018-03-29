@@ -24,6 +24,7 @@ void Torque_Detect();
 void MotorErr_Detect();
 void IntegAlarm();
 void ValvePosition_Detect();
+
 void TravelProtect_Def();
 void CloseDir_Protect();
 void Motor_PosRev();

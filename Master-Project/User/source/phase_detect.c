@@ -8,6 +8,7 @@
 #include "motor.h"
 #include "com.h"
 #include <stdio.h>
+#include "actuator_config.h"
 
 volatile PhaseSeq_Type phaseseq_status;//枚举变量，相序状态
 volatile CapSeq_TypeDef Cap_Seq;//序列捕获结构体
@@ -93,7 +94,7 @@ void PhaseSeq_Update()//主函数执行
             default:
             {
                 err_cnt++;
-                if(err_cnt>=10)
+                if(err_cnt>=15)
                 {
                     err_cnt = 0;
                     phaseseq_status = PHASESEQ_LACK;

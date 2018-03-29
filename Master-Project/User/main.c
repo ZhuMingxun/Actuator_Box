@@ -5,29 +5,46 @@
 #include "actuator_config.h"
 void main()
 {  
+    #ifdef WATCH_DOG
+    WDT_CONTR = WATCH_DOG_RSTVAL;
+    #endif
 	delay_ms(500);
-    //UART1_SWToDebug();
-    //printf("\r\n Start! ");
     Motor_PosRev();//printf("\r\n Motor_PosRev() ");	
     Motor_Config();//printf("\r\n Motor_Config()! ");
     Timer1_Config();//printf("\r\n Timer1_Config()! ");
     ADC_Config();//printf("\r\n ADC_Config()! ");
+   
+    #ifdef WATCH_DOG
+    WDT_CONTR = WATCH_DOG_RSTVAL;
+    #endif
+    
     PWMIO_Config();//printf("\r\n PWMIO_Config()! ");
     Timer0_Config();//printf("\r\n Timer0_Config()! ");
     MLX90316_SPI_Config();//printf("\r\n MLX90316_SPI_Config()! ");
+    
+    #ifdef WATCH_DOG
+    WDT_CONTR = WATCH_DOG_RSTVAL;
+    #endif
     
     #ifdef PHASE_SEQ
     PhaseSeq_Detect_Config();//printf("\r\n PhaseSeq_Detect_Config()! ");
     #endif
 
     SystemParam_Init();//printf("\r\n SystemParam_Init()! ");
-	
+    
+    #ifdef WATCH_DOG
+    WDT_CONTR = WATCH_DOG_RSTVAL;
+    #endif
+    
     SystemMode_Detect();//printf("\r\n SystemMode_Detect()! ");
     Detect_ValveInput();//printf("\r\n Detect_ValveInput()! ");
     DataSampInit();//printf("\r\n DataSampInit()! ");
 
     Communication_Config();
     
+    #ifdef WATCH_DOG
+    WDT_CONTR = WATCH_DOG_RSTVAL;
+    #endif
     while(1)
     {
         switch(mode)

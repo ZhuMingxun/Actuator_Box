@@ -117,7 +117,6 @@ void DistantAnalog_Mode()
             {
                 RemoteAnalog_Control_Adaptive();
             } 
-            //UART1_SWToDebug();
         }
         
         if(timer1_60ms_flag == 1)

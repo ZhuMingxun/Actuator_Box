@@ -10,8 +10,6 @@ typedef enum
 }DistantCmd_Type;    
 extern volatile DistantCmd_Type distant_cmd;
 
-extern u8 distant_open_trigger_flag;//
-extern u8 distant_close_trigger_flag;//
 void Distant_PCA_Config();
 void DistantDigital_Mode();
 void DistantDigital_Control();

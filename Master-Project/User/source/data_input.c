@@ -181,71 +181,76 @@ float Get_RealimeOpening(const DataADC_TypeDef*padc,const SystemParameter_TypeDe
     float opening_tmp;
     float x1,x2,x;
 	  
-		//判断行程过零
-		if((int)(pSystemParam->adcvalue_valvelow - pSystemParam->adcvalue_valvehigh)*(pSystemParam->close_dir)>0)
-			zero_flag = -1;
-		if((int)(pSystemParam->adcvalue_valvelow - pSystemParam->adcvalue_valvehigh)*(pSystemParam->close_dir)<0)
-			zero_flag = 1;
+    //判断行程过零
+    if((int)(pSystemParam->adcvalue_valvelow - pSystemParam->adcvalue_valvehigh)*(pSystemParam->close_dir)>0)
+        zero_flag = -1;
+    if((int)(pSystemParam->adcvalue_valvelow - pSystemParam->adcvalue_valvehigh)*(pSystemParam->close_dir)<0)
+        zero_flag = 1;
 	
     if(use_encoder_flag)
     {
-			if(zero_flag==-1)//不过零
-			{
-        x1 = (float)(psystem->adcvalue_valvelow);
-        x2 = (float)(psystem->adcvalue_valvehigh);
-        x = (float)(padc->adcvalue_encoder);
-        if((x1-x)*(x1-x2)<=0)   return 0.0;
-        if((x2-x)*(x2-x1)<=0)   return 1.0;
-				opening_tmp = (x-x1) / (x2-x1);
-				min_opening = 1/fabs(x2-x1);
-				return opening_tmp;
-			}
-			else//过零
-			{
-        x1 = (float)(psystem->adcvalue_valvelow);
-        x2 = (float)(psystem->adcvalue_valvehigh);
-				x = (float)(padc->adcvalue_encoder);
-				
-				if(x1 < x2)//L<H
-				{
-					min_opening = 1/fabs((float)(16383-(x2-x1)));
-					if(x<x1)
-					{
-						opening_tmp = (x1-x)/(float)(16383-(x2-x1));
-						return opening_tmp;
-					}
-					if(x>x2)
-					{
-						opening_tmp = (16383-(x-x1))/(float)(16383-(x2-x1));
-						return opening_tmp;
-					}
-					if(fabs(x-x1)<fabs(x-x2))
-						return 0.0;
-					else
-						return 1.0;
-				}
-				else//L>H
-				{
-					min_opening = 1/fabs((float)(16383-(x1-x2)));
-					
-					if(x<x2)
-					{
-						opening_tmp = (16383.0f-(x1-x))/(16383.0f-(x1-x2));
-						return opening_tmp;
-						
-					}
-					if(x>x1)
-					{
-						opening_tmp = (x-x1)/(16383.0f-(x1-x2));
-						return opening_tmp;
-					}
-					if(fabs(x-x1)<fabs(x-x2))
-						return 0.0;
-					else
-						return 1.0;
-					
-				}
-			}
+        if(zero_flag==-1)//不过零
+        {
+            x1 = (float)(psystem->adcvalue_valvelow);
+            x2 = (float)(psystem->adcvalue_valvehigh);
+            x = (float)(padc->adcvalue_encoder);
+            if((x1-x)*(x1-x2)<=0)   return 0.0;
+            if((x2-x)*(x2-x1)<=0)   return 1.0;
+            opening_tmp = (x-x1) / (x2-x1);
+            min_opening = 1/fabs(x2-x1);
+            opening_tmp = (float)((u8)(opening_tmp*100))/100.0;
+            return opening_tmp;
+        }
+        else//过零
+        {
+            x1 = (float)(psystem->adcvalue_valvelow);
+            x2 = (float)(psystem->adcvalue_valvehigh);
+            x = (float)(padc->adcvalue_encoder);
+            
+            if(x1 < x2)//L<H
+            {
+                min_opening = 1/fabs((float)(16383-(x2-x1)));
+                if(x<x1)
+                {
+                    opening_tmp = (x1-x)/(float)(16383-(x2-x1));
+                    opening_tmp = (float)((u8)(opening_tmp*100))/100.0;
+                    return opening_tmp;
+                }
+                if(x>x2)
+                {
+                    opening_tmp = (16383-(x-x1))/(float)(16383-(x2-x1));
+                    opening_tmp = (float)((u8)(opening_tmp*100))/100.0;
+                    return opening_tmp;
+                }
+                if(fabs(x-x1)<fabs(x-x2))
+                    return 0.0;
+                else
+                    return 1.0;
+            }
+            else//L>H
+            {
+                min_opening = 1/fabs((float)(16383-(x1-x2)));
+                
+                if(x<x2)
+                {
+                    opening_tmp = (16383.0f-(x1-x))/(16383.0f-(x1-x2));
+                    opening_tmp = (float)((u8)(opening_tmp*100))/100.0;
+                    return opening_tmp;
+                    
+                }
+                if(x>x1)
+                {
+                    opening_tmp = (x-x1)/(16383.0f-(x1-x2));
+                    opening_tmp = (float)((u8)(opening_tmp*100))/100.0;
+                    return opening_tmp;
+                }
+                if(fabs(x-x1)<fabs(x-x2))
+                    return 0.0;
+                else
+                    return 1.0;
+                
+            }
+        }
     }
     else
     {
@@ -254,8 +259,9 @@ float Get_RealimeOpening(const DataADC_TypeDef*padc,const SystemParameter_TypeDe
         x = (float)(padc->adcvalue_valve_filtered);
         if((x1-x)*(x1-x2)<=0)   return 0.0;
         if((x2-x)*(x2-x1)<=0)   return 1.0;
-			  opening_tmp = (x-x1) / (x2-x1);
-				return opening_tmp;
+	    opening_tmp = (x-x1) / (x2-x1);
+        opening_tmp = (float)((u8)(opening_tmp*100))/100.0;//保留两位小数
+		return opening_tmp;
     }
     
 
@@ -349,7 +355,10 @@ void DataSampInit()
     {
 		delay_ms(2);
         Acquire_Data();
-        Update_InputCurrent(); 
+        Update_InputCurrent();
+        #ifdef WATCH_DOG
+        WDT_CONTR = WATCH_DOG_RSTVAL;
+        #endif  
     }
     
     
@@ -363,6 +372,9 @@ void Detect_ValveInput()
     
     for(i=0;i<8;i++)
     {
+        #ifdef WATCH_DOG
+        WDT_CONTR = WATCH_DOG_RSTVAL;
+        #endif
         delay_ms(10);
         adc_data =  MLX90316_ReadData();
         if(adc_data == 0xC000)  errcnt++;

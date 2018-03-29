@@ -195,8 +195,7 @@ void Local_Mode()
             TravelProtect();
         #endif
         
-        
-        
+
         if(SlaverIsReadyToRead())
         {
             SlaverData_Update();//接收从机数据
@@ -273,8 +272,9 @@ void Local_Mode()
         {
             timer1_1s_flag = 0;
             MotorErr_Detect();
-            Motor_PosRev();
             Local_Stat_Count_per60ms();
+            Motor_PosRev();
+            
             //UART1_SWToDebug();
             //printf("\r\n local_stat_cnt=%d",(int)local_stat_cnt);
             
@@ -1081,7 +1081,6 @@ void CalLow_Mode()
 //高端校准20mA
 void CalHigh_Mode()
 {
-
     u16 pwm_cal_cnt;
 	u16 rd_cnt;
 	u8 ir_op_cnt=0;
@@ -1212,7 +1211,6 @@ void CalHigh_Mode()
                 ircmd = 0; 
                 break;                
             }
-            
             
             default:break; 
         }
